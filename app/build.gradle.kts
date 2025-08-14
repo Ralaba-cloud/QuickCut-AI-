@@ -28,7 +28,7 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
+        viewBinding = false
     }
 
     // DŮLEŽITÉ: AGP 8 používá Java 17 – nastavíme ji i pro Kotlin

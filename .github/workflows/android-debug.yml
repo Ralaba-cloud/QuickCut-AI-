@@ -1,3 +1,4 @@
+
 name: Android Debug APK
 on:
   workflow_dispatch:
@@ -5,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,16 +24,20 @@ jobs:
         run: |
           sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
-      # ⚠️ DŮLEŽITÉ: nastav správnou verzi Gradlu (8.7)
+      # Nastav přesnou verzi Gradlu (8.7) – kompatibilní s AGP 8.5.x
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: "8.7"
 
+      # Build s detailním logem (ať vidíme případné chyby)
       - name: Build Debug APK
-        run: gradle :app:assembleDebug --no-daemon
+        run: |
+          gradle :app:assembleDebug --stacktrace --info --warning-mode all --no-daemon
 
+      # Nahraj APK i při pádu, ať je vidět, co vzniklo
       - name: Upload APK artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: QuickCutAI-debug-apk

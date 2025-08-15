@@ -1,18 +1,43 @@
-- name: Build Debug APK
-  run: |
-    set -o pipefail
-    gradle :app:assembleDebug --stacktrace --info --warning-mode all --no-daemon | tee build.log
+name: Android Debug APK
+on:
+  workflow_dispatch:
 
-- name: Upload build log
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: build-log
-    path: build.log
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-- name: Upload APK artifact
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: QuickCutAI-debug-apk
-    path: app/build/outputs/apk/debug/*.apk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK platforms and build-tools
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
+      # Nastav přesnou verzi Gradlu (8.7) – kompatibilní s AGP 8.5.x
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.7"
+
+      # Build s detailním logem (ať vidíme případné chyby)
+      - name: Build Debug APK
+        run: |
+          gradle :app:assembleDebug --stacktrace --info --warning-mode all --no-daemon
+
+      # Nahraj APK i při pádu, ať je vidět, co vzniklo
+      - name: Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickCutAI-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
